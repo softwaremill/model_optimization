@@ -21,6 +21,20 @@ https://www.kaggle.com/datasets/ifigotin/imagenetmini-1000. After downloading, e
 the archive in to a directory of a directory named `data/` located in the directory
 with the cloned repository.
 
+## Supported models
+
+At the moment repository supports only a few of models from `torchvision` and `transformer`
+libraries. Supported models are:
+- ResNet18
+- VGG18
+- MobileNetV3 Large
+- BERT
+- T5
+- GPTNeo
+- custom FCN
+- custom CNN
+- custom LSTM
+
 ## Run
 
 To run benchmark run:
