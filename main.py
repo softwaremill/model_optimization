@@ -12,6 +12,7 @@ import torch_tensorrt
 from src.benchmark import (
     BenchmarkCPU,
     BenchmarkCUDA,
+    BenchmarkONNX,
     BenchmarkTensorDynamicQuantization,
     BenchmarkTensorPruning,
     BenchmarkTensorPTQ,
@@ -40,6 +41,8 @@ def parse_args() -> argparse.Namespace:
             "quantization",
             "dynamic_quantization",
             "pruning",
+            "onnx_cpu",
+            "onnx_gpu",
         ],
         required=True,
         help="Model's operation type.",
@@ -243,6 +246,30 @@ def main() -> None:
             name="weight",
             amount=args.pruning_ratio,
             structural_pruning=args.structural_pruning,
+        )
+    elif args.type == "onnx_cpu":
+        BenchmarkONNX().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            dataset_factory=dataset_factory,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            use_cuda=False,
+        )
+    elif args.type == "onnx_gpu":
+        BenchmarkONNX().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            dataset_factory=dataset_factory,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            use_cuda=True,
         )
 
 

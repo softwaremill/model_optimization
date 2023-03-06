@@ -2,9 +2,11 @@
 
 import time
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
+import onnx
+import onnxruntime as onnxrt
 import torch
 
 # to install version 1.3.0 follow
@@ -18,8 +20,8 @@ from transformers import BatchEncoding
 
 from src.dataset_utils import CustomDataset, DatasetFactory
 from src.memory import print_memory_info
-from src.model import T5, CustomLSTM, GPTNeo
-from src.model_utils import get_model_name, load_model, load_torchscript_model
+from src.model import T5, Bert, CustomLSTM, GPTNeo
+from src.model_utils import get_model_name, load_model, load_torchscript_model, to_numpy
 
 torch_tensorrt.logging.set_reportable_log_level(
     torch_tensorrt.logging.Level(torch_tensorrt.logging.Level.Error)
@@ -124,6 +126,7 @@ def measure_inference_latency(
     n_runs: int,
     dtype: str = "fp32",
     num_warmups: int = 5,
+    drop_last: bool = False,
 ) -> float:
     # https://developer.nvidia.com/blog/accelerating-inference-up-to-6x-faster-in-pytorch-with-torch-tensorrt/
 
@@ -134,7 +137,6 @@ def measure_inference_latency(
         model.to(memory_format=torch.channels_last)  # pylint: disable = (no-member)
         model.eval()
 
-    drop_last: bool = False
     # for LSTM model in TorchScript size of network is known in advance
     # changing batch_size will cause dimension mismatch
     if isinstance(model, CustomLSTM) or (
@@ -307,7 +309,7 @@ class Benchmark(ABC):
             use_fp16=use_fp16,
             use_jit=use_jit,
         )
-        Benchmark.measure_inference_time(
+        self.measure_inference_time(
             model_class_name=model_class_name,
             mode_label=mode_label,
             inference_time=inference_time,
@@ -619,3 +621,120 @@ class BenchmarkTensorPruning(Benchmark):
             n_runs=n_runs,
         )
         return inference_time
+
+
+class BenchmarkONNX(Benchmark):
+    """ONNX benchmark class."""
+
+    def measure_time(
+        self,
+        model_name: str,
+        device: torch.device,  # pylint: disable = (no-member)
+        batch_size: int,
+        dataset_factory: DatasetFactory,
+        model_torchscript_path: str,
+        use_jit: bool,
+        use_fp16: bool,
+        n_runs: int,
+        use_cuda: bool,
+        **kwargs,
+    ) -> float:
+        model = load_model_based_on_mode(
+            model_name=model_name,
+            device=device,
+            batch_size=batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=use_jit,
+        )
+        if isinstance(model, (T5, GPTNeo, Bert)):
+            raise RuntimeError(
+                "ONNX at the moment is not supported for language models."
+            )
+
+        dataset = dataset_factory.get_dataset()
+        sample = dataset[0][0]
+        onnx_model_path, providers = self.convert_to_onnx(
+            model_name=model_name,
+            device=device,
+            batch_size=batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=use_jit,
+            use_cuda=use_cuda,
+            sample=sample,
+        )
+
+        # create ONNX runtime with given Runtime: CPU or GPU
+        onnx_session = onnxrt.InferenceSession(
+            onnx_model_path,
+            providers=providers,
+        )
+
+        # define wrapper function to process tensors
+        def onnx_inference_func(x: torch.Tensor) -> torch.Tensor:
+            onnx_inputs = {onnx_session.get_inputs()[0].name: to_numpy(x)}
+            y_pred: List[np.ndarray] = onnx_session.run(None, onnx_inputs)
+            return torch.vstack([torch.from_numpy(item).float() for item in y_pred])
+
+        inference_time = measure_inference_latency(
+            model=onnx_inference_func,
+            device=device,
+            batch_size=batch_size,
+            dataset=dataset,
+            n_runs=n_runs,
+            drop_last=False,
+        )
+        return inference_time
+
+    def convert_to_onnx(
+        self,
+        model_name: str,
+        device: torch.device,
+        batch_size: int,
+        model_torchscript_path: str,
+        use_jit: bool,
+        use_cuda: bool,
+        sample,
+        onnx_model_path: str = "model.onnx",
+    ):
+        # define ONNX Runtime
+        providers: List[str] = ["CPUExecutionProvider"]
+        if use_cuda:
+            providers = ["CUDAExecutionProvider"]
+
+        model = load_model_based_on_mode(
+            model_name=model_name,
+            device=device,
+            batch_size=batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=use_jit,
+        )
+
+        # dynamic batch size in ONNX model according to PyTorch tutorial:
+        # https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html
+        # define batch_size as variable dimension
+        input_names: List[str] = ["input"]
+        output_names: List[str] = ["output"]
+        dynamic_axes_dict: Dict[str, Dict[int, str]] = {
+            input_names[0]: {0: "batch_size"},
+            output_names[0]: {0: "batch_size"},
+        }
+
+        if isinstance(sample, torch.Tensor):
+            sample_input = torch.randn(batch_size, *list(sample.shape)).to(device)
+        elif isinstance(sample, BatchEncoding):
+            sample_input = (val.to(device) for val in sample.data.values())
+        else:
+            raise RuntimeError(f"Unrecognized sample type: {type(sample)}")
+
+        # export model to ONNX format
+        torch.onnx.export(
+            model,
+            sample_input,
+            onnx_model_path,
+            export_params=True,
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic_axes_dict,
+        )
+
+        return onnx_model_path, providers
