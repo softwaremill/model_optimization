@@ -1,49 +1,27 @@
 # pylint: disable = (missing-module-docstring)
 
-import torch
-
-_cache_ = {
-    "memory_allocated": 0,
-    "max_memory_allocated": 0,
-    "memory_reserved": 0,
-    "max_memory_reserved": 0,
-}
+from nvitop import ResourceMetricCollector, Device
 
 
-def _get_memory_info(info_name: str, unit: str) -> str:
-    if info_name == "memory_allocated":
-        current_value = torch.cuda.memory.memory_allocated()
-    elif info_name == "max_memory_allocated":
-        current_value = torch.cuda.memory.max_memory_allocated()
-    elif info_name == "memory_reserved":
-        current_value = torch.cuda.memory.memory_reserved()
-    elif info_name == "max_memory_reserved":
-        current_value = torch.cuda.memory.max_memory_reserved()
-    else:
-        raise ValueError("Unrecognized `info_name` argument.")
+global_max_memory_used = 0.0
 
-    divisor: int = 1
-    if unit.lower() == "kb":
-        divisor = 1024
-    elif unit.lower() == "mb":
-        divisor = 1024 * 1024
-    elif unit.lower() == "gb":
-        divisor = 1024 * 1024 * 1024
-    else:
-        raise ValueError("Unrecognized `unit` argument.")
+# Record metrics to the logger in background every 5 seconds.
+# It will collect 5-second mean/min/max for each metric.
+def vram_monitor_factory(interval: float, device: str):
+    def on_collect(metrics):  # will be called periodically
+        global global_max_memory_used
+        for k, v in metrics.items():
+            if "memory_used" in k and "max" in k and device in k:
+                max_memory_used = v
+                if max_memory_used > global_max_memory_used:
+                    global_max_memory_used = max_memory_used
+        return True
 
-    diff_value = current_value - _cache_[info_name]
-    _cache_[info_name] = current_value
-
-    return (
-        f"{info_name}: \t {current_value} ({current_value/divisor:.3f} {unit.upper()})"
-        f"\t diff_{info_name}: {diff_value} ({diff_value/divisor:.3f} {unit.upper()})"
+    ResourceMetricCollector(Device.cuda.all()).daemonize(
+        on_collect=on_collect,
+        interval=interval,
     )
 
-
-def print_memory_info(unit: str = "kb") -> None:
-    print(_get_memory_info("memory_allocated", unit))
-    print(_get_memory_info("max_memory_allocated", unit))
-    print(_get_memory_info("memory_reserved", unit))
-    print(_get_memory_info("max_memory_reserved", unit))
+def print_memory_info() -> None:
+    print(f"max_memory_used: \t {global_max_memory_used:.3f} MB")
     print("")

@@ -245,8 +245,8 @@ class Benchmark(ABC):
     """Abstract benchmark class."""
 
     @classmethod
-    def measure_vram(cls, unit: str = "mb"):
-        print_memory_info(unit=unit)
+    def measure_vram(cls):
+        print_memory_info()
 
     @classmethod
     def measure_inference_time(
