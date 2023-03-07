@@ -2,14 +2,13 @@
 
 import argparse
 import os
-import sys
 
 import torch
 
 # to install version 1.3.0 follow
 # https://github.com/pytorch/TensorRT/issues/1371#issuecomment-1256035010
 import torch_tensorrt
-import traceback
+
 from src.benchmark import (
     BenchmarkCPU,
     BenchmarkCUDA,
@@ -24,8 +23,8 @@ from src.dataset_utils import (
     DatasetImagenetMiniFactory,
     DatasetIMDBFactory,
 )
-from src.model_utils import save_torchscript
 from src.memory import vram_monitor_factory
+from src.model_utils import save_torchscript
 
 torch_tensorrt.logging.set_reportable_log_level(
     torch_tensorrt.logging.Level(torch_tensorrt.logging.Level.Error)
@@ -170,113 +169,111 @@ def main() -> None:
 
     example_inputs = dataset_factory.get_example_inputs()
 
-    try:
-        # save model's torchscript .pth file
-        model_torchscript_path: str = os.path.join(args.model_dir, args.model_filename)
-        if args.use_jit:
-            save_torchscript(
-                model_name=args.model_name,
-                device=cpu_device,
-                batch_size=args.batch_size,
-                model_torchscript_path=model_torchscript_path,
-                example_inputs=example_inputs,
-            )
-        # compute inference time, CUDA memory usage and F1 score
-        if args.type == "cpu":
-            BenchmarkCPU().benchmark(
-                model_name=args.model_name,
-                device=cpu_device,
-                batch_size=args.batch_size,
-                dataset_factory=dataset_factory,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-            )
-        elif args.type == "cuda":
-            BenchmarkCUDA().benchmark(
-                model_name=args.model_name,
-                device=cuda_device,
-                batch_size=args.batch_size,
-                dataset_factory=dataset_factory,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-            )
-        elif args.type == "tensorrt":
-            BenchmarkTensorRT().benchmark(
-                model_name=args.model_name,
-                device=cuda_device,
-                batch_size=args.batch_size,
-                dataset_factory=dataset_factory,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-            )
-        elif args.type == "quantization":
-            BenchmarkTensorPTQ().benchmark(
-                model_name=args.model_name,
-                device=cuda_device,
-                batch_size=args.batch_size,
-                dataset_factory=dataset_factory,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-                model_torchscript_path=model_torchscript_path,
-            )
-        elif args.type == "dynamic_quantization":
-            BenchmarkTensorDynamicQuantization().benchmark(
-                model_name=args.model_name,
-                device=cpu_device,
-                dataset_factory=dataset_factory,
-                batch_size=args.batch_size,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-            )
-        elif args.type == "pruning":
-            BenchmarkTensorPruning().benchmark(
-                model_name=args.model_name,
-                device=cpu_device,
-                batch_size=args.batch_size,
-                model_torchscript_path=model_torchscript_path,
-                dataset_factory=dataset_factory,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-                name="weight",
-                amount=args.pruning_ratio,
-                structural_pruning=args.structural_pruning,
-            )
-        elif args.type == "onnx_cpu":
-            BenchmarkONNX().benchmark(
-                model_name=args.model_name,
-                device=cpu_device,
-                dataset_factory=dataset_factory,
-                batch_size=args.batch_size,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-                use_cuda=False,
-            )
-        elif args.type == "onnx_gpu":
-            BenchmarkONNX().benchmark(
-                model_name=args.model_name,
-                device=cpu_device,
-                dataset_factory=dataset_factory,
-                batch_size=args.batch_size,
-                model_torchscript_path=model_torchscript_path,
-                use_jit=args.use_jit,
-                use_fp16=args.use_fp16,
-                n_runs=args.n_runs,
-                use_cuda=True,
-            )
-    except Exception:
-        traceback.print_exception(*sys.exc_info())
+    # save model's torchscript .pth file
+    model_torchscript_path: str = os.path.join(args.model_dir, args.model_filename)
+    if args.use_jit:
+        save_torchscript(
+            model_name=args.model_name,
+            device=cpu_device,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            example_inputs=example_inputs,
+        )
+    # compute inference time, CUDA memory usage and F1 score
+    if args.type == "cpu":
+        BenchmarkCPU().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            batch_size=args.batch_size,
+            dataset_factory=dataset_factory,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+        )
+    elif args.type == "cuda":
+        BenchmarkCUDA().benchmark(
+            model_name=args.model_name,
+            device=cuda_device,
+            batch_size=args.batch_size,
+            dataset_factory=dataset_factory,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+        )
+    elif args.type == "tensorrt":
+        BenchmarkTensorRT().benchmark(
+            model_name=args.model_name,
+            device=cuda_device,
+            batch_size=args.batch_size,
+            dataset_factory=dataset_factory,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+        )
+    elif args.type == "quantization":
+        BenchmarkTensorPTQ().benchmark(
+            model_name=args.model_name,
+            device=cuda_device,
+            batch_size=args.batch_size,
+            dataset_factory=dataset_factory,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            model_torchscript_path=model_torchscript_path,
+        )
+    elif args.type == "dynamic_quantization":
+        BenchmarkTensorDynamicQuantization().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            dataset_factory=dataset_factory,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+        )
+    elif args.type == "pruning":
+        BenchmarkTensorPruning().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            dataset_factory=dataset_factory,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            name="weight",
+            amount=args.pruning_ratio,
+            structural_pruning=args.structural_pruning,
+        )
+    elif args.type == "onnx_cpu":
+        BenchmarkONNX().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            dataset_factory=dataset_factory,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            use_cuda=False,
+        )
+    elif args.type == "onnx_gpu":
+        BenchmarkONNX().benchmark(
+            model_name=args.model_name,
+            device=cpu_device,
+            dataset_factory=dataset_factory,
+            batch_size=args.batch_size,
+            model_torchscript_path=model_torchscript_path,
+            use_jit=args.use_jit,
+            use_fp16=args.use_fp16,
+            n_runs=args.n_runs,
+            use_cuda=True,
+        )
+
 
 if __name__ == "__main__":
     main()

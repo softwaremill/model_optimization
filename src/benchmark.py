@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-import onnx
 import onnxruntime as onnxrt
 import torch
 

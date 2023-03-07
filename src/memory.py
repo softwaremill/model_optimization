@@ -1,7 +1,6 @@
 # pylint: disable = (missing-module-docstring)
 
-from nvitop import ResourceMetricCollector, Device
-
+from nvitop import Device, ResourceMetricCollector
 
 global_max_memory_used = 0.0
 
@@ -21,6 +20,7 @@ def vram_monitor_factory(interval: float, device: str):
         on_collect=on_collect,
         interval=interval,
     )
+
 
 def print_memory_info() -> None:
     print(f"max_memory_used: \t {global_max_memory_used:.3f} MB")
