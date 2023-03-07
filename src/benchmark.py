@@ -654,19 +654,26 @@ class BenchmarkONNX(Benchmark):
         dataset = dataset_factory.get_dataset()
         sample = dataset[0][0]
         onnx_model_path, providers = self.convert_to_onnx(
-            model_name=model_name,
+            model=model,
             device=device,
             batch_size=batch_size,
-            model_torchscript_path=model_torchscript_path,
-            use_jit=use_jit,
-            use_cuda=use_cuda,
             sample=sample,
+            use_cuda=use_cuda,
         )
+
+        session_options = onnxrt.SessionOptions()
+        session_options.graph_optimization_level = (
+            onnxrt.GraphOptimizationLevel.ORT_ENABLE_BASIC
+        )
+        # disable optimizations to prevent non-deterministic differences in VRAM usage
+        session_options.enable_cpu_mem_arena = False
+        session_options.enable_mem_pattern = False
 
         # create ONNX runtime with given Runtime: CPU or GPU
         onnx_session = onnxrt.InferenceSession(
             onnx_model_path,
             providers=providers,
+            sess_options=session_options,
         )
 
         # define wrapper function to process tensors
@@ -687,11 +694,9 @@ class BenchmarkONNX(Benchmark):
 
     def convert_to_onnx(
         self,
-        model_name: str,
+        model: Union[torch.nn.Module, torch._C.ScriptModule],
         device: torch.device,
         batch_size: int,
-        model_torchscript_path: str,
-        use_jit: bool,
         use_cuda: bool,
         sample,
         onnx_model_path: str = "model.onnx",
@@ -700,14 +705,6 @@ class BenchmarkONNX(Benchmark):
         providers: List[str] = ["CPUExecutionProvider"]
         if use_cuda:
             providers = ["CUDAExecutionProvider"]
-
-        model = load_model_based_on_mode(
-            model_name=model_name,
-            device=device,
-            batch_size=batch_size,
-            model_torchscript_path=model_torchscript_path,
-            use_jit=use_jit,
-        )
 
         # dynamic batch size in ONNX model according to PyTorch tutorial:
         # https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html
