@@ -2,6 +2,7 @@
 
 import os
 
+import numpy as np
 import torch
 from torchvision.models import (
     MobileNet_V3_Large_Weights,
@@ -22,7 +23,11 @@ def get_model_name(
     device: torch.device,  # pylint: disable = (no-member)
     batch_size: int,
 ) -> str:
-    model = load_model(model_name=model_name, device=device, batch_size=batch_size)
+    model = load_model(
+        model_name=model_name,
+        device=device,
+        batch_size=batch_size,
+    )
     return model.__class__.__name__
 
 
@@ -105,4 +110,11 @@ def save_torchscript(
         model=model,
         model_torchscript_path=model_torchscript_path,
         example_inputs=example_inputs,
+    )
+    del model
+
+
+def to_numpy(tensor: torch.Tensor) -> np.ndarray:
+    return (
+        tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
     )
