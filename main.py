@@ -1,7 +1,9 @@
 # pylint: disable = (missing-module-docstring)
 
 import argparse
+import json
 import os
+from typing import Dict, Union
 
 import torch
 
@@ -29,6 +31,23 @@ from src.model_utils import save_torchscript
 torch_tensorrt.logging.set_reportable_log_level(
     torch_tensorrt.logging.Level(torch_tensorrt.logging.Level.Error)
 )
+
+
+def append_results_to_log_file(
+    path: str, model_name: str, data: Dict[str, Union[str, float]]
+) -> None:
+    benchmark_results = {}
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as file:
+            benchmark_results = json.load(file)
+
+    if model_name in benchmark_results.keys():
+        benchmark_results[model_name].append(data)
+    else:
+        benchmark_results[model_name] = [data]
+
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(benchmark_results, file, indent=4)
 
 
 def parse_args() -> argparse.Namespace:
@@ -126,6 +145,12 @@ def parse_args() -> argparse.Namespace:
         default=150,
         help="Number of samples from IMDB dataset to use.",
     )
+    parser.add_argument(
+        "--result_file",
+        type=str,
+        default="benchmark_log.json",
+        help="Filename of a file where all benchmark results will be stored.",
+    )
 
     return parser.parse_args()
 
@@ -136,7 +161,6 @@ def main() -> None:
     # https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html#enable-cudnn-auto-tuner
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.enabled = True
-    vram_monitor_factory(interval=1e-3, device="cuda:0")
 
     # https://pytorch.org/docs/stable/amp.html
 
@@ -179,9 +203,13 @@ def main() -> None:
             model_torchscript_path=model_torchscript_path,
             example_inputs=example_inputs,
         )
+
+    vram_monitor_factory(interval=1e-3, device="cuda:0")
+
+    result_dict: Dict[str, Union[int, float]]
     # compute inference time, CUDA memory usage and F1 score
     if args.type == "cpu":
-        BenchmarkCPU().benchmark(
+        result_dict = BenchmarkCPU().benchmark(
             model_name=args.model_name,
             device=cpu_device,
             batch_size=args.batch_size,
@@ -192,7 +220,7 @@ def main() -> None:
             n_runs=args.n_runs,
         )
     elif args.type == "cuda":
-        BenchmarkCUDA().benchmark(
+        result_dict = BenchmarkCUDA().benchmark(
             model_name=args.model_name,
             device=cuda_device,
             batch_size=args.batch_size,
@@ -203,7 +231,7 @@ def main() -> None:
             n_runs=args.n_runs,
         )
     elif args.type == "tensorrt":
-        BenchmarkTensorRT().benchmark(
+        result_dict = BenchmarkTensorRT().benchmark(
             model_name=args.model_name,
             device=cuda_device,
             batch_size=args.batch_size,
@@ -214,7 +242,7 @@ def main() -> None:
             n_runs=args.n_runs,
         )
     elif args.type == "quantization":
-        BenchmarkTensorPTQ().benchmark(
+        result_dict = BenchmarkTensorPTQ().benchmark(
             model_name=args.model_name,
             device=cuda_device,
             batch_size=args.batch_size,
@@ -225,7 +253,7 @@ def main() -> None:
             model_torchscript_path=model_torchscript_path,
         )
     elif args.type == "dynamic_quantization":
-        BenchmarkTensorDynamicQuantization().benchmark(
+        result_dict = BenchmarkTensorDynamicQuantization().benchmark(
             model_name=args.model_name,
             device=cpu_device,
             dataset_factory=dataset_factory,
@@ -236,7 +264,7 @@ def main() -> None:
             n_runs=args.n_runs,
         )
     elif args.type == "pruning":
-        BenchmarkTensorPruning().benchmark(
+        result_dict = BenchmarkTensorPruning().benchmark(
             model_name=args.model_name,
             device=cpu_device,
             batch_size=args.batch_size,
@@ -250,7 +278,7 @@ def main() -> None:
             structural_pruning=args.structural_pruning,
         )
     elif args.type == "onnx_cpu":
-        BenchmarkONNX().benchmark(
+        result_dict = BenchmarkONNX().benchmark(
             model_name=args.model_name,
             device=cpu_device,
             dataset_factory=dataset_factory,
@@ -262,7 +290,7 @@ def main() -> None:
             use_cuda=False,
         )
     elif args.type == "onnx_gpu":
-        BenchmarkONNX().benchmark(
+        result_dict = BenchmarkONNX().benchmark(
             model_name=args.model_name,
             device=cpu_device,
             dataset_factory=dataset_factory,
@@ -273,6 +301,12 @@ def main() -> None:
             n_runs=args.n_runs,
             use_cuda=True,
         )
+
+    append_results_to_log_file(
+        path=args.result_file,
+        model_name=args.model_name,
+        data=result_dict,
+    )
 
 
 if __name__ == "__main__":

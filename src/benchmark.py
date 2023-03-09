@@ -2,7 +2,7 @@
 
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import onnxruntime as onnxrt
@@ -18,7 +18,7 @@ from torch.nn.utils import prune
 from transformers import BatchEncoding
 
 from src.dataset_utils import CustomDataset, DatasetFactory
-from src.memory import print_memory_info
+from src.memory import get_memory_info
 from src.model import T5, Bert, CustomLSTM, GPTNeo
 from src.model_utils import get_model_name, load_model, load_torchscript_model, to_numpy
 
@@ -126,7 +126,7 @@ def measure_inference_latency(
     dtype: str = "fp32",
     num_warmups: int = 5,
     drop_last: bool = False,
-) -> float:
+) -> Tuple[float, float]:
     # https://developer.nvidia.com/blog/accelerating-inference-up-to-6x-faster-in-pytorch-with-torch-tensorrt/
 
     # improve performance:
@@ -169,17 +169,22 @@ def measure_inference_latency(
     is_nlg_model: bool = is_t5_model or is_gpt_model
 
     elapsed_time_ave_list: List[float] = []
+    f1_scores: List[float] = []
     for _ in range(0, n_runs):
-        elapsed_time = measure_inference_run(
+        elapsed_time, f1_score = measure_inference_run(
             model, device, sample_batches, label_batches, is_nlg_model
         )
         elapsed_time_ave_list.append(elapsed_time / (num_samples * batch_size))
+        f1_scores.append(f1_score)
 
     mean_inference_time: float = 0.0
+    mean_f1_score: float = 0.0
     if elapsed_time_ave_list:
         mean_inference_time = float(np.mean(elapsed_time_ave_list))
+        if all(val is not None for val in f1_scores):
+            mean_f1_score = float(np.mean(f1_scores))
 
-    return mean_inference_time
+    return mean_inference_time, mean_f1_score
 
 
 def warmup_model(
@@ -204,7 +209,7 @@ def measure_inference_run(
     sample_batches: List[torch.Tensor],
     label_batches: List[torch.Tensor],
     is_nlg_model: bool,
-) -> float:
+) -> Tuple[float, Optional[float]]:
     with torch.no_grad():
         predicted_class: List[torch.Tensor] = []
         start_time = time.time()
@@ -222,6 +227,7 @@ def measure_inference_run(
 
     end_time = time.time()
 
+    score_rounded = None
     if not is_nlg_model:
         f1_metric = torchmetrics.F1Score(task="multiclass", num_classes=1000)
         preds = (
@@ -236,8 +242,8 @@ def measure_inference_run(
             preds[:min_length], labels[:min_length]
         )
         score_rounded = round(score.cpu().detach().item(), 3)
-        print(f"F1 score: {score_rounded}")
-    return end_time - start_time
+        # print(f"F1 score: {score_rounded}")
+    return (end_time - start_time, score_rounded)
 
 
 class Benchmark(ABC):
@@ -245,24 +251,31 @@ class Benchmark(ABC):
 
     @classmethod
     def measure_vram(cls):
-        print_memory_info()
+        return get_memory_info()
 
-    @classmethod
-    def measure_inference_time(
-        cls,
-        model_class_name: str,
-        mode_label: str,
-        inference_time: float,
-        batch_size: int,
-        n_runs: int,
-    ):
-        inference_time_rounded = round(inference_time * 1000, 3)
-        model_label = f"[{model_class_name}] {mode_label}"
-        options = f"ms / batch ({batch_size} samples) [n_runs={n_runs}]"
-        print(f"{model_label} Inference Latency: {inference_time_rounded} {options}")
+    # @classmethod
+    # def measure_inference_time(
+    #     cls,
+    #     model_class_name: str,
+    #     mode_label: str,
+    #     inference_time: float,
+    #     batch_size: int,
+    #     n_runs: int,
+    #     benchmark_name: str,
+    # ):
+    #     inference_time_rounded = round(inference_time * 1000, 3)
+    #     model_label = f"[{model_class_name}] {mode_label}"
+    #     options = f"ms / batch ({batch_size} samples) [n_runs={n_runs}]"
+    # print(f"{model_label} [{benchmark_name}] Inference Latency: {inference_time_rounded} {options}")
 
     @abstractmethod
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        ...
+
+    @abstractmethod
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -273,7 +286,7 @@ class Benchmark(ABC):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         ...
 
     def benchmark(
@@ -287,8 +300,8 @@ class Benchmark(ABC):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> None:
-        inference_time = self.measure_time(
+    ) -> Dict[str, Union[float, int]]:
+        inference_time, f1_score = self.measure_time_and_f1_score(
             model_name=model_name,
             device=device,
             batch_size=batch_size,
@@ -299,29 +312,47 @@ class Benchmark(ABC):
             n_runs=n_runs,
             **kwargs,
         )
-        model_class_name = get_model_name(
-            model_name=model_name,
-            device=device,
-            batch_size=batch_size,
-        )
-        mode_label = get_model_label(
-            use_fp16=use_fp16,
-            use_jit=use_jit,
-        )
-        self.measure_inference_time(
-            model_class_name=model_class_name,
-            mode_label=mode_label,
-            inference_time=inference_time,
-            batch_size=batch_size,
-            n_runs=n_runs,
-        )
-        self.measure_vram()
+        # model_class_name = get_model_name(
+        #     model_name=model_name,
+        #     device=device,
+        #     batch_size=batch_size,
+        # )
+        # mode_label = get_model_label(
+        #     use_fp16=use_fp16,
+        #     use_jit=use_jit,
+        # )
+        # benchmark_name = self.get_benchmark_name()
+        # self.measure_inference_time(
+        #     model_class_name=model_class_name,
+        #     mode_label=mode_label,
+        #     inference_time=inference_time,
+        #     batch_size=batch_size,
+        #     n_runs=n_runs,
+        #     benchmark_name=benchmark_name,
+        # )
+        inference_time_rounded = round(inference_time * 1000, 3)
+        peak_memory_usage = self.measure_vram()
+        return {
+            "inference_time": inference_time_rounded,
+            "memory_usage": peak_memory_usage,
+            "f1": f1_score,
+            "batch_size": batch_size,
+            "use_jit": use_jit,
+            "use_fp16": use_fp16,
+            "benchmark_name": self.get_benchmark_name(),
+            **kwargs,
+        }
 
 
 class BenchmarkCPU(Benchmark):
     """CPU benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -332,8 +363,9 @@ class BenchmarkCPU(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         dataset = dataset_factory.get_dataset()
+
         model = load_model_based_on_mode(
             model_name=model_name,
             device=device,
@@ -342,20 +374,25 @@ class BenchmarkCPU(Benchmark):
             use_jit=use_jit,
         )
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=model,
             device=device,
             batch_size=batch_size,
             dataset=dataset,
             n_runs=n_runs,
         )
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkCUDA(Benchmark):
     """CUDA benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -366,7 +403,7 @@ class BenchmarkCUDA(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         if use_fp16 and use_jit:
             torch._C._jit_set_autocast_mode(  # pylint: disable = (protected-access,c-extension-no-member)
                 True
@@ -382,7 +419,7 @@ class BenchmarkCUDA(Benchmark):
         dataset = dataset_factory.get_dataset()
 
         if not use_fp16:
-            inference_time = measure_inference_latency(
+            inference_time, f1_score = measure_inference_latency(
                 model=model,
                 device=device,
                 batch_size=batch_size,
@@ -394,7 +431,7 @@ class BenchmarkCUDA(Benchmark):
                 device_type="cuda",
                 dtype=torch.bfloat16,  # pylint: disable = (no-member)
             ):
-                inference_time = measure_inference_latency(
+                inference_time, f1_score = measure_inference_latency(
                     model=model,
                     device=device,
                     batch_size=batch_size,
@@ -402,13 +439,18 @@ class BenchmarkCUDA(Benchmark):
                     n_runs=n_runs,
                 )
 
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkTensorRT(Benchmark):
     """TensorRT benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -419,7 +461,7 @@ class BenchmarkTensorRT(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         dataset = dataset_factory.get_dataset()
         sample = dataset[0][0]
 
@@ -456,20 +498,25 @@ class BenchmarkTensorRT(Benchmark):
             },
         )
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=trt_model,
             device=device,
             batch_size=batch_size,
             dataset=dataset,
             n_runs=n_runs,
         )
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkTensorPTQ(Benchmark):
     """TensorRT PTQ benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -480,7 +527,7 @@ class BenchmarkTensorPTQ(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         dataset = dataset_factory.get_dataset()
         sample = dataset[0][0]
 
@@ -528,20 +575,25 @@ class BenchmarkTensorPTQ(Benchmark):
         )
         del calibrator
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=trt_pqt_model,
             device=device,
             batch_size=batch_size,
             dataset=dataset,
             n_runs=n_runs,
         )
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkTensorDynamicQuantization(Benchmark):
     """Dynamic Quantization benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -552,7 +604,7 @@ class BenchmarkTensorDynamicQuantization(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         model = load_model(model_name=model_name, device=device, batch_size=batch_size)
         dataset = dataset_factory.get_dataset()
         quantized_model = torch.quantization.quantize_dynamic(
@@ -561,20 +613,25 @@ class BenchmarkTensorDynamicQuantization(Benchmark):
             dtype=torch.qint8,  # pylint: disable = (no-member)
         )
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=quantized_model,
             device=device,
             batch_size=batch_size,
             dataset=dataset,
             n_runs=n_runs,
         )
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkTensorPruning(Benchmark):
     """Pruning benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -585,7 +642,7 @@ class BenchmarkTensorPruning(Benchmark):
         use_fp16: bool,
         n_runs: int,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         name: str = kwargs["name"]
         amount: float = kwargs["amount"]
         structural_pruning: bool = kwargs.get("structural_pruning", False)
@@ -612,20 +669,25 @@ class BenchmarkTensorPruning(Benchmark):
                 amount=amount,
             )
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=model,
             device=device,
             batch_size=batch_size,
             dataset=dataset,
             n_runs=n_runs,
         )
-        return inference_time
+        return inference_time, f1_score
 
 
 class BenchmarkONNX(Benchmark):
     """ONNX benchmark class."""
 
-    def measure_time(
+    def get_benchmark_name(
+        self,
+    ) -> str:
+        return self.__class__.__name__
+
+    def measure_time_and_f1_score(
         self,
         model_name: str,
         device: torch.device,  # pylint: disable = (no-member)
@@ -637,7 +699,7 @@ class BenchmarkONNX(Benchmark):
         n_runs: int,
         use_cuda: bool,
         **kwargs,
-    ) -> float:
+    ) -> Tuple[float, float]:
         model = load_model_based_on_mode(
             model_name=model_name,
             device=device,
@@ -681,7 +743,7 @@ class BenchmarkONNX(Benchmark):
             y_pred: List[np.ndarray] = onnx_session.run(None, onnx_inputs)
             return torch.vstack([torch.from_numpy(item).float() for item in y_pred])
 
-        inference_time = measure_inference_latency(
+        inference_time, f1_score = measure_inference_latency(
             model=onnx_inference_func,
             device=device,
             batch_size=batch_size,
@@ -689,7 +751,7 @@ class BenchmarkONNX(Benchmark):
             n_runs=n_runs,
             drop_last=False,
         )
-        return inference_time
+        return inference_time, f1_score
 
     def convert_to_onnx(
         self,

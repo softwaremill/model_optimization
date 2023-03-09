@@ -111,6 +111,7 @@ def save_torchscript(
         model_torchscript_path=model_torchscript_path,
         example_inputs=example_inputs,
     )
+    del model
 
 
 def to_numpy(tensor: torch.Tensor) -> np.ndarray:
