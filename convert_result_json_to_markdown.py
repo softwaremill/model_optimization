@@ -77,7 +77,7 @@ def main() -> None:
     benchmark_result = load_benchmark_result(path=args.result_file)
     for model_name, results in benchmark_result.items():
         print(model_name)
-        print("\nInference time [s/batch]")
+        print("\nInference time [ms/batch]")
         print(
             parse_model_results(data=results, value_key="mean_inference_time_per_batch")
         )
