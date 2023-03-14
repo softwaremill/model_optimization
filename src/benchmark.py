@@ -168,23 +168,16 @@ def measure_inference_latency(
     )
     is_nlg_model: bool = is_t5_model or is_gpt_model
 
-    elapsed_time_ave_list: List[float] = []
-    f1_scores: List[float] = []
-    for _ in range(0, n_runs):
-        elapsed_time, f1_score = measure_inference_run(
-            model, device, sample_batches, label_batches, is_nlg_model
-        )
-        elapsed_time_ave_list.append(elapsed_time / (num_samples * batch_size))
-        f1_scores.append(f1_score)
+    elapsed_time, f1_score = measure_inference_run(
+        model,
+        device,
+        sample_batches,
+        label_batches,
+        is_nlg_model,
+        n_runs,
+    )
 
-    mean_inference_time: float = 0.0
-    mean_f1_score: float = 0.0
-    if elapsed_time_ave_list:
-        mean_inference_time = float(np.mean(elapsed_time_ave_list))
-        if all(val is not None for val in f1_scores):
-            mean_f1_score = float(np.mean(f1_scores))
-
-    return mean_inference_time, mean_f1_score
+    return elapsed_time, f1_score
 
 
 def warmup_model(
@@ -209,23 +202,29 @@ def measure_inference_run(
     sample_batches: List[torch.Tensor],
     label_batches: List[torch.Tensor],
     is_nlg_model: bool,
+    n_runs: int,
 ) -> Tuple[float, Optional[float]]:
+    total_time: List[float] = []
     with torch.no_grad():
-        predicted_class: List[torch.Tensor] = []
-        start_time = time.time()
-        for sample in sample_batches:
-            if isinstance(sample, BatchEncoding):
-                y_pred = model(**sample)
-            else:
-                y_pred = model(sample)
+        for _ in range(0, n_runs):
+            predicted_class: List[torch.Tensor] = []
+            for sample in sample_batches:
+                if isinstance(sample, BatchEncoding):
+                    start_time = time.time()
+                    y_pred = model(**sample)
+                    end_time = time.time()
+                else:
+                    start_time = time.time()
+                    y_pred = model(sample)
+                    end_time = time.time()
 
-            if "cuda" in device.type:
-                torch.cuda.synchronize()
+                if "cuda" in device.type:
+                    torch.cuda.synchronize()
 
-            if not is_nlg_model:
-                predicted_class.append(torch.argmax(y_pred, dim=1))
+                if not is_nlg_model:
+                    predicted_class.append(torch.argmax(y_pred, dim=1))
 
-    end_time = time.time()
+                total_time.append(end_time - start_time)
 
     score_rounded = None
     if not is_nlg_model:
@@ -242,8 +241,11 @@ def measure_inference_run(
             preds[:min_length], labels[:min_length]
         )
         score_rounded = round(score.cpu().detach().item(), 3)
-        # print(f"F1 score: {score_rounded}")
-    return (end_time - start_time, score_rounded)
+
+    mean_batch_inference_time = (
+        float(np.mean(total_time)) * 1000
+    )  # convert to milliseconds
+    return (mean_batch_inference_time, score_rounded)
 
 
 class Benchmark(ABC):
@@ -252,21 +254,6 @@ class Benchmark(ABC):
     @classmethod
     def measure_vram(cls):
         return get_memory_info()
-
-    # @classmethod
-    # def measure_inference_time(
-    #     cls,
-    #     model_class_name: str,
-    #     mode_label: str,
-    #     inference_time: float,
-    #     batch_size: int,
-    #     n_runs: int,
-    #     benchmark_name: str,
-    # ):
-    #     inference_time_rounded = round(inference_time * 1000, 3)
-    #     model_label = f"[{model_class_name}] {mode_label}"
-    #     options = f"ms / batch ({batch_size} samples) [n_runs={n_runs}]"
-    # print(f"{model_label} [{benchmark_name}] Inference Latency: {inference_time_rounded} {options}")
 
     @abstractmethod
     def get_benchmark_name(
@@ -312,30 +299,13 @@ class Benchmark(ABC):
             n_runs=n_runs,
             **kwargs,
         )
-        # model_class_name = get_model_name(
-        #     model_name=model_name,
-        #     device=device,
-        #     batch_size=batch_size,
-        # )
-        # mode_label = get_model_label(
-        #     use_fp16=use_fp16,
-        #     use_jit=use_jit,
-        # )
-        # benchmark_name = self.get_benchmark_name()
-        # self.measure_inference_time(
-        #     model_class_name=model_class_name,
-        #     mode_label=mode_label,
-        #     inference_time=inference_time,
-        #     batch_size=batch_size,
-        #     n_runs=n_runs,
-        #     benchmark_name=benchmark_name,
-        # )
-        inference_time_rounded = round(inference_time * 1000, 3)
+
+        inference_time_rounded = round(inference_time, 5)
         peak_memory_usage = self.measure_vram()
         return {
-            "inference_time": inference_time_rounded,
-            "memory_usage": peak_memory_usage,
-            "f1": f1_score,
+            "mean_inference_time_per_batch": inference_time_rounded,
+            "max_memory_usage": peak_memory_usage,
+            "mean_f1": f1_score,
             "batch_size": batch_size,
             "use_jit": use_jit,
             "use_fp16": use_fp16,
