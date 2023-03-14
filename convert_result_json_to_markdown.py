@@ -77,12 +77,14 @@ def main() -> None:
     benchmark_result = load_benchmark_result(path=args.result_file)
     for model_name, results in benchmark_result.items():
         print(model_name)
-        print("\nInference time [ms/sample]")
-        print(parse_model_results(data=results, value_key="inference_time"))
+        print("\nInference time [s/batch]")
+        print(
+            parse_model_results(data=results, value_key="mean_inference_time_per_batch")
+        )
         print("\nGPU Memory Peak usage [MB] - max_memory_allocated")
-        print(parse_model_results(data=results, value_key="memory_usage"))
+        print(parse_model_results(data=results, value_key="max_memory_usage"))
         print("\nF1 score")
-        print(parse_model_results(data=results, value_key="f1"))
+        print(parse_model_results(data=results, value_key="mean_f1"))
 
 
 if __name__ == "__main__":
