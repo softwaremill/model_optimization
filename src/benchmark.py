@@ -242,7 +242,9 @@ def measure_inference_run(
         )
         score_rounded = round(score.cpu().detach().item(), 3)
 
-    mean_batch_inference_time = float(np.mean(total_time))
+    mean_batch_inference_time = (
+        float(np.mean(total_time)) * 1000
+    )  # convert to milliseconds
     return (mean_batch_inference_time, score_rounded)
 
 

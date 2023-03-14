@@ -85,39 +85,39 @@ the smaller the neural network.
 <details>
 <summary>MobileNetV3 Large</summary>
 
-Inference time [ms/sample]
+Inference time [ms/batch]
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |          6.285 |           2.333 |           2.644 |           3.535 |
-| BenchmarkCPU JIT FP32                       |          4.189 |           1.885 |           2.363 |           3.456 |
-| BenchmarkCUDA FP32                          |          4.798 |           0.296 |           0.181 |           0.168 |
-| BenchmarkCUDA FP16                          |          4.536 |           0.526 |           0.425 |           0.338 |
-| BenchmarkCUDA JIT FP32                      |          2.379 |           0.239 |           0.221 |           0.214 |
-| BenchmarkTensorRT FP32                      |          0.71  |           0.128 |           0.111 |           0.105 |
-| BenchmarkTensorRT FP16                      |          0.541 |           0.078 |           0.066 |           0.058 |
-| BenchmarkTensorRT JIT FP32                  |          1.994 |           0.171 |           0.204 |           0.146 |
-| BenchmarkTensorRT JIT FP16                  |          1.923 |           0.149 |           0.131 |           0.124 |
-| BenchmarkTensorPTQ GPU INT8                 |          0.523 |           0.086 |           0.047 |           0.04  |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          6.407 |           2.468 |           2.742 |           3.229 |
-| BenchmarkONNX CPU FP32                      |         10.285 |           8.629 |           9.265 |          10.289 |
-| BenchmarkONNX GPU FP32                      |          1.354 |           0.332 |           0.333 |           0.343 |
+| BenchmarkCPU FP32                           |        6.65668 |        39.6939  |        93.6553  |       258.536   |
+| BenchmarkCPU JIT FP32                       |        4.15924 |        33.0095  |        84.7393  |       215.743   |
+| BenchmarkCUDA FP32                          |        4.73794 |         4.90756 |         4.98441 |         5.13826 |
+| BenchmarkCUDA FP16                          |        4.24022 |         8.92531 |        13.3196  |        22.2075  |
+| BenchmarkCUDA JIT FP32                      |        2.50684 |         2.57411 |         2.6444  |         2.66859 |
+| BenchmarkTensorRT FP32                      |        0.37369 |         0.46744 |         0.55616 |         0.64345 |
+| BenchmarkTensorRT FP16                      |        0.36989 |         0.44853 |         0.48069 |         0.65303 |
+| BenchmarkTensorRT JIT FP32                  |        1.86556 |         2.29273 |         2.72782 |         3.42388 |
+| BenchmarkTensorRT JIT FP16                  |        1.8543  |         2.51738 |         2.69553 |         3.50059 |
+| BenchmarkTensorPTQ GPU INT8                 |        0.36075 |         0.47061 |         0.47071 |         0.59932 |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        6.52208 |        33.8213  |        90.519   |       248.511   |
+| BenchmarkONNX CPU FP32                      |       13.1123  |       143.642   |       296.045   |       631.377   |
+| BenchmarkONNX GPU FP32                      |        1.40741 |         5.55726 |        11.0792  |        23.09    |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |         0.0625 |          0      |          0      |          0      |
-| BenchmarkCPU JIT FP32                       |         0      |          0      |         94.9375 |          0      |
-| BenchmarkCUDA FP32                          |      4216.19   |       4051      |       4219      |       4387      |
-| BenchmarkCUDA FP16                          |      3773      |       3693      |       3848.06   |       3857      |
-| BenchmarkCUDA JIT FP32                      |      4175      |       4131      |       3356.69   |       4221      |
-| BenchmarkTensorRT FP32                      |      4067.06   |       4113.19   |       4199      |       4273      |
-| BenchmarkTensorRT FP16                      |      4175      |       4051      |       4040.12   |       4099.19   |
-| BenchmarkTensorRT JIT FP32                  |      4668.56   |       4415      |       4613.12   |       4797      |
-| BenchmarkTensorRT JIT FP16                  |      4789.19   |       4395.19   |       4306.19   |       4633      |
-| BenchmarkTensorPTQ GPU INT8                 |      4164.38   |       4029      |       4065      |       4025.19   |
-| BenchmarkTensorDynamicQuantization CPU INT8 |         0      |          0      |          0      |          0      |
-| BenchmarkONNX CPU FP32                      |         0.1875 |          0.1875 |          0      |          0.1875 |
-| BenchmarkONNX GPU FP32                      |      1461      |       1937      |       1937      |       2009      |
+| BenchmarkCPU FP32                           |        86.5625 |          93.625 |         187.75  |        132.562  |
+| BenchmarkCPU JIT FP32                       |        90.25   |          38     |         106.125 |        196.25   |
+| BenchmarkCUDA FP32                          |      4280.06   |        4056.5   |        4219     |       4332.44   |
+| BenchmarkCUDA FP16                          |      3738.62   |        3740.75  |        3775     |       3955.56   |
+| BenchmarkCUDA JIT FP32                      |      4180.12   |        3463.25  |        3293     |       4242.5    |
+| BenchmarkTensorRT FP32                      |      4191.25   |        4037.25  |        4234.88  |       4468.5    |
+| BenchmarkTensorRT FP16                      |      4098.94   |        4109.94  |        4036.5   |       4096.88   |
+| BenchmarkTensorRT JIT FP32                  |      4888.31   |        4367.88  |        4634.06  |       4869.31   |
+| BenchmarkTensorRT JIT FP16                  |      4756.5    |        4511.44  |        4549     |       4406.38   |
+| BenchmarkTensorPTQ GPU INT8                 |      4278      |        3988.62  |        4138.75  |       4129.12   |
+| BenchmarkTensorDynamicQuantization CPU INT8 |         0      |         111.5   |         727.812 |         42.5625 |
+| BenchmarkONNX CPU FP32                      |        70.25   |         164     |         133.062 |         69.375  |
+| BenchmarkONNX GPU FP32                      |      1565.31   |        1748.44  |        2104.38  |       1972.69   |
 
 F1 score
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
@@ -141,41 +141,41 @@ F1 score
 <details>
 <summary>ResNet18</summary>
 
-Inference time [ms/sample]
+Inference time [ms/batch]
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |          6.567 |           4.04  |           5.079 |           4.283 |
-| BenchmarkCPU JIT FP32                       |          4.238 |           3.211 |           3.705 |           3.467 |
-| BenchmarkCUDA FP32                          |          2.104 |           0.254 |           0.253 |           0.215 |
-| BenchmarkCUDA FP16                          |          2.05  |           0.423 |           0.442 |           0.403 |
-| BenchmarkCUDA JIT FP32                      |          1.536 |           0.239 |           0.202 |           0.174 |
-| BenchmarkTensorRT FP32                      |          0.862 |           0.217 |           0.201 |    RuntimeError |
-| BenchmarkTensorRT FP16                      |          0.359 |           0.074 |           0.062 |    RuntimeError |
-| BenchmarkTensorRT JIT FP32                  |          1.566 |           0.279 |           0.226 |           0.203 |
-| BenchmarkTensorRT JIT FP16                  |          1.564 |           0.292 |           0.223 |           0.212 |
-| BenchmarkTensorPTQ GPU INT8                 |          0.289 |           0.044 |           0.033 |    RuntimeError |
-| BenchmarkTensorPTQ JIT FP32                 |          1.585 |           0.299 |           0.223 |           0.208 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          7.569 |           4.119 |           3.965 |           4.286 |
-| BenchmarkONNX CPU FP32                      |          7.887 |           7.84  |           9.858 |           8.826 |
-| BenchmarkONNX GPU FP32                      |          1.254 |           0.342 |           0.306 |           0.339 |
+| BenchmarkCPU FP32                           |        6.56187 |        66.63    |       148.69    |       310.237   |
+| BenchmarkCPU JIT FP32                       |        3.60982 |        58.6944  |       115.064   |       264.537   |
+| BenchmarkCUDA FP32                          |        2.11525 |         2.04019 |         2.1531  |         2.20068 |
+| BenchmarkCUDA FP16                          |        1.96927 |         4.98496 |         8.59432 |        21.8313  |
+| BenchmarkCUDA JIT FP32                      |        1.36742 |         1.37558 |         1.38043 |         1.38113 |
+| BenchmarkTensorRT FP32                      |        0.18209 |         0.234   |         0.29882 |    RuntimeError |
+| BenchmarkTensorRT FP16                      |        0.17422 |         0.24152 |         0.32649 |    RuntimeError |
+| BenchmarkTensorRT JIT FP32                  |        1.42797 |         1.92369 |         2.40061 |         3.36516 |
+| BenchmarkTensorRT JIT FP16                  |        1.43552 |         1.93637 |         2.40309 |         3.35638 |
+| BenchmarkTensorPTQ GPU INT8                 |        0.17013 |         0.24272 |         0.28632 |    RuntimeError |
+| BenchmarkTensorPTQ JIT FP32                 |        1.45247 |         1.96525 |         2.36605 |         3.32073 |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        7.10821 |        66.5728  |       152.422   |       310.828   |
+| BenchmarkONNX CPU FP32                      |        7.57494 |       126.287   |       288.258   |       590.629   |
+| BenchmarkONNX GPU FP32                      |        1.34674 |         5.33583 |         9.58347 |        22.3498  |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |        214.562 |          69.875 |         29.6875 |         35.0625 |
-| BenchmarkCPU JIT FP32                       |        115.562 |          23.375 |         78.875  |        106.75   |
-| BenchmarkCUDA FP32                          |       4098.44  |        4027     |       4255.31   |       4287      |
-| BenchmarkCUDA FP16                          |       3899.88  |        3731     |       3781.94   |       3790.19   |
-| BenchmarkCUDA JIT FP32                      |       3202.06  |        3168     |       3239.12   |       3318      |
-| BenchmarkTensorRT FP32                      |       4268.38  |        4543.94  |       4262.31   |    RuntimeError |
-| BenchmarkTensorRT FP16                      |       4219     |        4031.88  |       4145.12   |    RuntimeError |
-| BenchmarkTensorRT JIT FP32                  |       5245     |        4115.38  |       4081.44   |       4306.12   |
-| BenchmarkTensorRT JIT FP16                  |       5071.31  |        4156.44  |       4185      |       4359.12   |
-| BenchmarkTensorPTQ GPU INT8                 |       4201.06  |        4031.31  |       3663      |    RuntimeError |
-| BenchmarkTensorPTQ JIT FP32                 |       4286.5   |        4110.75  |       4177.12   |       4314.12   |
-| BenchmarkTensorDynamicQuantization CPU INT8 |         83     |           0     |         65.75   |          7.25   |
-| BenchmarkONNX CPU FP32                      |        183.188 |         123.812 |          0      |         20.5    |
-| BenchmarkONNX GPU FP32                      |       1555     |        1708.06  |       1873      |       2036.06   |
+| BenchmarkCPU FP32                           |        175.562 |         240.438 |         111.938 |           0     |
+| BenchmarkCPU JIT FP32                       |         16     |         157.062 |           1.5   |         343.125 |
+| BenchmarkCUDA FP32                          |       4164     |        4035.5   |        4155     |        4287     |
+| BenchmarkCUDA FP16                          |       3880.31  |        3740.5   |        3799.06  |        3781.31  |
+| BenchmarkCUDA JIT FP32                      |       3333.38  |        3325.06  |        3254     |        3318     |
+| BenchmarkTensorRT FP32                      |       4465.5   |        4139.81  |        4468.31  |    RuntimeError |
+| BenchmarkTensorRT FP16                      |       4239.19  |        4112.06  |        4163.81  |    RuntimeError |
+| BenchmarkTensorRT JIT FP32                  |       5306.94  |        4228.81  |        4185     |        4315     |
+| BenchmarkTensorRT JIT FP16                  |       4326.75  |        4193.31  |        4269     |        4315     |
+| BenchmarkTensorPTQ GPU INT8                 |       4492.75  |        4019.69  |        2984.75  |    RuntimeError |
+| BenchmarkTensorPTQ JIT FP32                 |       4362.19  |        4109.19  |        4161.81  |        4305     |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        175.438 |         119.438 |           4     |           0     |
+| BenchmarkONNX CPU FP32                      |        119.625 |           5.625 |         129.125 |           0     |
+| BenchmarkONNX GPU FP32                      |       1794.25  |        1669.25  |        1683     |        2058.81  |
 
 F1 score
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
@@ -186,7 +186,7 @@ F1 score
 | BenchmarkCUDA FP16                          |          0.69  |           0.69  |           0.69  |           0.69  |
 | BenchmarkCUDA JIT FP32                      |          0.691 |           0.691 |           0.691 |           0.691 |
 | BenchmarkTensorRT FP32                      |          0.691 |           0.691 |           0.691 |    RuntimeError |
-| BenchmarkTensorRT FP16                      |          0.691 |           0.69  |           0.691 |    RuntimeError |
+| BenchmarkTensorRT FP16                      |          0.69  |           0.691 |           0.691 |    RuntimeError |
 | BenchmarkTensorRT JIT FP32                  |          0.691 |           0.691 |           0.691 |           0.691 |
 | BenchmarkTensorRT JIT FP16                  |          0.691 |           0.691 |           0.691 |           0.691 |
 | BenchmarkTensorPTQ GPU INT8                 |          0.687 |           0.691 |           0.687 |    RuntimeError |
@@ -200,175 +200,170 @@ F1 score
 <details>
 <summary>Custom FCN</summary>
 
-Inference time [ms/sample]
+Inference time [ms/batch]
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |          3.538 |           0.481 |           0.381 |           0.396 |
-| BenchmarkCPU JIT FP32                       |          7.794 |           0.72  |           0.53  |           0.517 |
-| BenchmarkCUDA FP32                          |          0.254 |           0.02  |           0.012 |           0.01  |
-| BenchmarkCUDA FP16                          |          0.194 |           0.014 |           0.01  |           0.006 |
-| BenchmarkCUDA JIT FP32                      |          0.268 |           0.018 |           0.017 |           0.014 |
-| BenchmarkCUDA JIT FP16                      |          0.183 |           0.02  |           0.015 |           0.012 |
-| BenchmarkTensorRT FP32                      |          0.322 |           0.028 |           0.017 |           0.011 |
-| BenchmarkTensorRT FP16                      |          0.249 |           0.023 |           0.015 |           0.011 |
-| BenchmarkTensorRT JIT FP32                  |          0.332 |           0.026 |           0.016 |           0.011 |
-| BenchmarkTensorRT JIT FP16                  |          0.243 |           0.022 |           0.014 |           0.01  |
-| BenchmarkTensorPTQ GPU INT8                 |          0.319 |           0.026 |           0.016 |           0.011 |
-| BenchmarkTensorPTQ JIT FP32                 |          0.325 |           0.026 |           0.017 |           0.011 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          3.563 |           0.417 |           0.383 |           0.407 |
-| BenchmarkONNX CPU FP32                      |          2.217 |           0.324 |           0.311 |           0.222 |
-| BenchmarkONNX GPU FP32                      |          0.392 |           0.097 |           0.11  |           0.138 |
+| BenchmarkCPU FP32                           |        3.64144 |         7.21241 |        12.6852  |        26.349   |
+| BenchmarkCPU JIT FP32                       |        8.344   |        11.5492  |        18.1966  |        34.0335  |
+| BenchmarkCUDA FP32                          |        0.13043 |         0.14393 |         0.14425 |         0.1537  |
+| BenchmarkCUDA FP16                          |        0.16081 |         0.15058 |         0.15591 |         0.17274 |
+| BenchmarkCUDA JIT FP32                      |        0.11584 |         0.11744 |         0.30389 |         0.50184 |
+| BenchmarkCUDA JIT FP16                      |        0.14448 |         0.23365 |         0.34274 |         0.51351 |
+| BenchmarkTensorRT FP32                      |        0.11961 |         0.18326 |         0.21406 |         0.31011 |
+| BenchmarkTensorRT FP16                      |        0.12771 |         0.18176 |         0.22592 |         0.30709 |
+| BenchmarkTensorRT JIT FP32                  |        0.12059 |         0.17736 |         0.21766 |         0.30517 |
+| BenchmarkTensorRT JIT FP16                  |        0.13034 |         0.17527 |         0.22913 |         0.31921 |
+| BenchmarkTensorPTQ GPU INT8                 |        0.11739 |         0.18039 |         0.21735 |         0.31279 |
+| BenchmarkTensorPTQ JIT FP32                 |        0.122   |         0.17064 |         0.22594 |         0.32175 |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        3.74147 |         7.7936  |        12.7667  |        25.6249  |
+| BenchmarkONNX CPU FP32                      |        2.48965 |         6.26884 |        10.3026  |        15.9953  |
+| BenchmarkONNX GPU FP32                      |        0.3746  |         1.58999 |         3.43263 |         8.43945 |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |        91.875  |         129.438 |            0    |          0      |
-| BenchmarkCPU JIT FP32                       |       151.312  |         133.312 |            0    |        117.875  |
-| BenchmarkCUDA FP32                          |      3940.06   |        3733     |         3735    |       3587.44   |
-| BenchmarkCUDA FP16                          |      3925.94   |        3799     |         3814.25 |       3748.81   |
-| BenchmarkCUDA JIT FP32                      |      2969.06   |        2656     |         2707.44 |       2483.56   |
-| BenchmarkCUDA JIT FP16                      |      3094.5    |        2860.69  |         2798.69 |       2699.81   |
-| BenchmarkTensorRT FP32                      |      4478.5    |        4224.75  |         4264.5  |       3170.56   |
-| BenchmarkTensorRT FP16                      |      4318.69   |        4092.56  |         1737.44 |       1886.56   |
-| BenchmarkTensorRT JIT FP32                  |      4519.88   |        3295     |         3442.38 |       4222.88   |
-| BenchmarkTensorRT JIT FP16                  |      4624.5    |        4327.38  |         1918.94 |       1904.5    |
-| BenchmarkTensorPTQ GPU INT8                 |      4362.88   |        4230.44  |         1995.12 |       2061.88   |
-| BenchmarkTensorPTQ JIT FP32                 |      4555.56   |        4356.56  |         4432.25 |       2615.31   |
-| BenchmarkTensorDynamicQuantization CPU INT8 |        79.0625 |           0     |            0    |         30.6875 |
-| BenchmarkONNX CPU FP32                      |       145.562  |           4     |           17    |         37.125  |
-| BenchmarkONNX GPU FP32                      |      1608.81   |        1755     |         1842    |       1746.69   |
+| BenchmarkCPU FP32                           |         2.6875 |           6.125 |            0    |           0     |
+| BenchmarkCPU JIT FP32                       |         7.125  |           0     |            0    |           0     |
+| BenchmarkCUDA FP32                          |      3869      |        3557.44  |         3596.94 |        3385     |
+| BenchmarkCUDA FP16                          |      3935      |        3686.56  |         3679    |        3526.5   |
+| BenchmarkCUDA JIT FP32                      |      2971.12   |        2842     |         2566    |        2567.44  |
+| BenchmarkCUDA JIT FP16                      |      3044      |        2916.12  |         2920    |        2522.06  |
+| BenchmarkTensorRT FP32                      |      4417      |        4242.94  |         2483    |        1843     |
+| BenchmarkTensorRT FP16                      |      4355      |        4189     |         2820.88 |        1757     |
+| BenchmarkTensorRT JIT FP32                  |      4549      |        4374.94  |         4357.75 |        3681     |
+| BenchmarkTensorRT JIT FP16                  |      4514.56   |        2403.12  |         1879    |        1889     |
+| BenchmarkTensorPTQ GPU INT8                 |      4382.75   |        4242.94  |         1999    |        3476.56  |
+| BenchmarkTensorPTQ JIT FP32                 |      4680.69   |        4365.12  |         4472    |        2100.25  |
+| BenchmarkTensorDynamicQuantization CPU INT8 |         4.1875 |           0     |            0    |          69.875 |
+| BenchmarkONNX CPU FP32                      |         6.125  |           6.125 |            0    |           0     |
+| BenchmarkONNX GPU FP32                      |      1743.25   |        1747     |         1753    |        1745     |
 
 </details>
 
 <details>
 <summary>Custom CNN</summary>
 
-Inference time [ms/sample]
+Inference time [ms/batch]
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |          0.638 |           0.511 |           0.481 |           0.615 |
-| BenchmarkCPU JIT FP32                       |          0.57  |           0.634 |           0.633 |           0.818 |
-| BenchmarkCUDA FP32                          |          0.411 |           0.07  |           0.057 |           0.062 |
-| BenchmarkCUDA FP16                          |          0.38  |           0.101 |           0.095 |           0.104 |
-| BenchmarkCUDA JIT FP32                      |          0.304 |           0.057 |           0.051 |           0.063 |
-| BenchmarkCUDA JIT FP16                      |          0.345 |           0.061 |           0.048 |           0.062 |
-| BenchmarkTensorRT FP32                      |          0.197 |           0.033 |           0.029 |           0.028 |
-| BenchmarkTensorRT FP16                      |          0.188 |           0.025 |           0.019 |           0.018 |
-| BenchmarkTensorRT JIT FP32                  |          0.349 |           0.061 |           0.051 |           0.055 |
-| BenchmarkTensorRT JIT FP16                  |          0.348 |           0.058 |           0.055 |           0.054 |
-| BenchmarkTensorPTQ GPU INT8                 |          0.191 |           0.027 |           0.022 |           0.02  |
-| BenchmarkTensorPTQ JIT FP32                 |          0.357 |           0.059 |           0.059 |           0.054 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          0.674 |           0.425 |           0.517 |           0.59  |
-| BenchmarkONNX CPU FP32                      |          0.595 |           0.515 |           0.54  |           0.634 |
-| BenchmarkONNX GPU FP32                      |          0.368 |           0.131 |           0.156 |           0.179 |
+| BenchmarkCPU FP32                           |        0.6041  |         6.84558 |        15.2199  |        36.631   |
+| BenchmarkCPU JIT FP32                       |        0.55452 |         9.20548 |        17.5044  |        50.8534  |
+| BenchmarkCUDA FP32                          |        0.36863 |         0.39096 |         0.40863 |         0.44231 |
+| BenchmarkCUDA FP16                          |        0.32376 |         0.90419 |         1.43579 |         2.59567 |
+| BenchmarkCUDA JIT FP32                      |        0.25777 |         0.31822 |         0.30812 |         1.04666 |
+| BenchmarkCUDA JIT FP16                      |        0.29276 |         0.40917 |         0.34614 |         1.06159 |
+| BenchmarkTensorRT FP32                      |        0.14719 |         0.19721 |         0.23885 |         0.32795 |
+| BenchmarkTensorRT FP16                      |        0.13708 |         0.19832 |         0.24555 |         0.31692 |
+| BenchmarkTensorRT JIT FP32                  |        0.29644 |         0.37561 |         0.43972 |         0.55849 |
+| BenchmarkTensorRT JIT FP16                  |        0.3038  |         0.40303 |         0.4536  |         0.53448 |
+| BenchmarkTensorPTQ GPU INT8                 |        0.14049 |         0.19181 |         0.23541 |         0.33495 |
+| BenchmarkTensorPTQ JIT FP32                 |        0.29664 |         0.39762 |         0.47142 |         0.57725 |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        0.62132 |         6.90235 |        14.6365  |        37.6674  |
+| BenchmarkONNX CPU FP32                      |        0.5589  |         6.61945 |        15.4145  |        44.824   |
+| BenchmarkONNX GPU FP32                      |        0.32198 |         2.01974 |         4.45235 |        10.8827  |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |        20      |          4.5625 |          9.875  |         26.0625 |
-| BenchmarkCPU JIT FP32                       |       106.375  |          5.3125 |         98.3125 |          0      |
-| BenchmarkCUDA FP32                          |      4043.81   |       3854.25   |       3876.88   |       3879      |
-| BenchmarkCUDA FP16                          |      3722.81   |       3623      |       3669.81   |       3591      |
-| BenchmarkCUDA JIT FP32                      |      3279.25   |       3072.88   |       3165.88   |       3100      |
-| BenchmarkCUDA JIT FP16                      |      3244.56   |       3115.06   |       3153.69   |       3102      |
-| BenchmarkTensorRT FP32                      |      4170.62   |       3098.88   |       4025      |       4063.19   |
-| BenchmarkTensorRT FP16                      |      4248.88   |       3650.94   |       1684.81   |       1584.44   |
-| BenchmarkTensorRT JIT FP32                  |      4135      |       4061.12   |       4069.69   |       4004.38   |
-| BenchmarkTensorRT JIT FP16                  |      4245.25   |       3994      |       4066.19   |       4004.31   |
-| BenchmarkTensorPTQ GPU INT8                 |      4195.25   |       2309.12   |       1804.12   |       3407      |
-| BenchmarkTensorPTQ JIT FP32                 |      4148.88   |       4003.12   |       4497.62   |       4005      |
-| BenchmarkTensorDynamicQuantization CPU INT8 |         4.9375 |          0      |          0      |         57.0625 |
-| BenchmarkONNX CPU FP32                      |        30.4375 |          0      |          0      |          1.6875 |
-| BenchmarkONNX GPU FP32                      |      1414.38   |       1513      |       1587      |       1815.12   |
+| BenchmarkCPU FP32                           |          7.125 |          4      |           6.375 |         143.625 |
+| BenchmarkCPU JIT FP32                       |         13.625 |         25.625  |           0     |         181.5   |
+| BenchmarkCUDA FP32                          |       4012.88  |       3867      |        3903     |        3900.5   |
+| BenchmarkCUDA FP16                          |       3743.5   |       3627      |        3633     |        3585.12  |
+| BenchmarkCUDA JIT FP32                      |       3240.38  |       3109      |        3144     |        3050.06  |
+| BenchmarkCUDA JIT FP16                      |       3238.62  |       3085.25   |        3136     |        3120.69  |
+| BenchmarkTensorRT FP32                      |       4129.5   |       2543      |        4039.38  |        4050.56  |
+| BenchmarkTensorRT FP16                      |       4251.19  |       4011      |        2887     |        1969     |
+| BenchmarkTensorRT JIT FP32                  |       4190.88  |       4042.19   |        4057     |        4003     |
+| BenchmarkTensorRT JIT FP16                  |       4107.06  |       4029      |        4049.94  |        3917.31  |
+| BenchmarkTensorPTQ GPU INT8                 |       4070.38  |       2695.69   |        2527     |        3905.19  |
+| BenchmarkTensorPTQ JIT FP32                 |       4123.12  |       3816.94   |        4057     |        3996.62  |
+| BenchmarkTensorDynamicQuantization CPU INT8 |          0     |          0      |           0     |          32     |
+| BenchmarkONNX CPU FP32                      |          0     |          5.0625 |           0     |           0     |
+| BenchmarkONNX GPU FP32                      |       1425.88  |       1497.88   |        1320.69  |        1841.88  |
 
 </details>
 
 <details>
 <summary>Custom LSTM</summary>
 
-Inference time [ms/sample]
+Inference time [ms/batch]
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |         10.481 |           5.14  |           2.605 |           1.518 |
-| BenchmarkCPU JIT FP32                       |         12.097 |           4.917 |           2.592 |           1.523 |
-| BenchmarkCUDA FP32                          |          3.343 |           0.226 |           0.117 |           0.062 |
-| BenchmarkCUDA FP16                          |          4.386 |           0.275 |           0.144 |           0.077 |
-| BenchmarkCUDA JIT FP32                      |          4.906 |           0.322 |           0.161 |           0.083 |
-| BenchmarkCUDA JIT FP16                      |          4.351 |           0.271 |           0.138 |           0.078 |
-| BenchmarkTensorRT FP32                      |          3.668 |           0.233 |           0.123 |           0.071 |
-| BenchmarkTensorRT FP16                      |          3.404 |           0.253 |           0.124 |           0.071 |
-| BenchmarkTensorRT JIT FP32                  |          5.111 |           0.345 |           0.174 |           0.096 |
-| BenchmarkTensorRT JIT FP16                  |          5.013 |           0.355 |           0.174 |           0.094 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          9.749 |           5.139 |           2.619 |           1.555 |
-| BenchmarkONNX CPU FP32                      |          3.772 |    RuntimeError |    RuntimeError |    RuntimeError |
-| BenchmarkONNX GPU FP32                      |          5.063 |    RuntimeError |    RuntimeError |    RuntimeError |
+| BenchmarkCPU FP32                           |        9.73442 |        79.3966  |        87.3652  |        96.4714  |
+| BenchmarkCPU JIT FP32                       |        9.24112 |        83.0199  |        81.9827  |        97.5167  |
+| BenchmarkCUDA FP32                          |        0.6312  |         0.62433 |         0.85634 |         0.87198 |
+| BenchmarkCUDA FP16                          |        2.38455 |         2.44246 |         2.60007 |         2.57795 |
+| BenchmarkCUDA JIT FP32                      |        2.19351 |         2.23447 |         2.47491 |         2.40318 |
+| BenchmarkCUDA JIT FP16                      |        2.36462 |         2.34376 |         2.48879 |         2.60825 |
+| BenchmarkTensorRT FP32                      |        0.76575 |         0.88835 |         1.15607 |         1.42448 |
+| BenchmarkTensorRT FP16                      |        0.76033 |         0.91771 |         1.17992 |         1.39111 |
+| BenchmarkTensorRT JIT FP32                  |        2.38293 |         2.53469 |         2.70416 |         3.00983 |
+| BenchmarkTensorRT JIT FP16                  |        2.41481 |         2.50169 |         2.82023 |         3.01824 |
+| BenchmarkTensorDynamicQuantization CPU INT8 |        9.71816 |        79.2601  |        83.2324  |        93.6791  |
+| BenchmarkONNX CPU FP32                      |        3.68844 |    RuntimeError |    RuntimeError |    RuntimeError |
+| BenchmarkONNX GPU FP32                      |        4.91169 |    RuntimeError |    RuntimeError |    RuntimeError |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
 |                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
 |:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCPU FP32                           |        97.1875 |         85.125  |         52.9375 |         94.1875 |
-| BenchmarkCPU JIT FP32                       |       162.75   |          1.3125 |         31.0625 |        120.938  |
-| BenchmarkCUDA FP32                          |      4115.25   |       3966      |       3991      |       3943.06   |
-| BenchmarkCUDA FP16                          |      4227.44   |       3950.31   |       4031.56   |       3861.81   |
-| BenchmarkCUDA JIT FP32                      |      3368.44   |       3165.31   |       3158      |       3098      |
-| BenchmarkCUDA JIT FP16                      |      3221.06   |       3052.25   |       3039.88   |       3034      |
-| BenchmarkTensorRT FP32                      |      4378.94   |       4093.56   |       4170.94   |       4146.5    |
-| BenchmarkTensorRT FP16                      |      4369.19   |       4169.06   |       4183.12   |       4149.31   |
-| BenchmarkTensorRT JIT FP32                  |      4442.5    |       4195.44   |       4242.06   |       4219.06   |
-| BenchmarkTensorRT JIT FP16                  |      4442.38   |       4282.5    |       4245.12   |       4218.75   |
-| BenchmarkTensorDynamicQuantization CPU INT8 |        96.1875 |          0      |         53.625  |        105.562  |
-| BenchmarkONNX CPU FP32                      |        18.8125 |    RuntimeError |    RuntimeError |    RuntimeError |
-| BenchmarkONNX GPU FP32                      |      2308.31   |    RuntimeError |    RuntimeError |    RuntimeError |
+| BenchmarkCPU FP32                           |       105.375  |         179.25  |         11.875  |          32     |
+| BenchmarkCPU JIT FP32                       |         0.0625 |         182.125 |         56.9375 |           7.625 |
+| BenchmarkCUDA FP32                          |      4141.81   |        4078.44  |       3993.12   |        3934.56  |
+| BenchmarkCUDA FP16                          |      4292.75   |        3878.88  |       3979.56   |        3913.81  |
+| BenchmarkCUDA JIT FP32                      |      3688.5    |        3252.06  |       3170.69   |        3098     |
+| BenchmarkCUDA JIT FP16                      |      3220.25   |        3055.44  |       3033.88   |        3098.5   |
+| BenchmarkTensorRT FP32                      |      4438.12   |        4012.06  |       4173.12   |        3804     |
+| BenchmarkTensorRT FP16                      |      4277.88   |        4275.56  |       4177.25   |        4125     |
+| BenchmarkTensorRT JIT FP32                  |      4355.19   |        4189.06  |       4257.81   |        4239.75  |
+| BenchmarkTensorRT JIT FP16                  |      4456.12   |        4222.75  |       4250.88   |        4213     |
+| BenchmarkTensorDynamicQuantization CPU INT8 |       186.562  |          67     |        124.375  |           0     |
+| BenchmarkONNX CPU FP32                      |        36      |    RuntimeError |    RuntimeError |    RuntimeError |
+| BenchmarkONNX GPU FP32                      |      2477.38   |    RuntimeError |    RuntimeError |    RuntimeError |
 
 </details>
 
 <details>
 <summary>BERT</summary>
 
-Inference time [ms/sample]
-|                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
-|:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCUDA FP32                          |          5.219 |           1.256 |           1.204 |           1.022 |
-| BenchmarkCUDA FP16                          |          5.87  |           0.523 |           0.512 |           0.39  |
-| BenchmarkCUDA JIT FP32                      |          4.61  |           1.737 |           1.062 |           0.894 |
-| BenchmarkCUDA JIT FP16                      |          5.352 |           1.423 |           0.454 |           0.372 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |         50.772 |          38.479 |          37.276 |          35.526 |
+Inference time [ms/batch]
+|                        |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
+|:-----------------------|---------------:|----------------:|----------------:|----------------:|
+| BenchmarkCUDA FP32     |        5.06335 |         5.09667 |         5.55995 |         5.58667 |
+| BenchmarkCUDA FP16     |        5.64662 |         5.93464 |         6.03207 |         6.26639 |
+| BenchmarkCUDA JIT FP32 |        4.55503 |        12.5667  |         3.00945 |         2.9614  |
+| BenchmarkCUDA JIT FP16 |        5.20118 |        17.5239  |         3.25109 |         3.39975 |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
-|                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
-|:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCUDA FP32                          |       1677.25  |        1671     |        1765.25  |        1909.06  |
-| BenchmarkCUDA FP16                          |       1759.69  |        1262.62  |        1229     |        2226.31  |
-| BenchmarkCUDA JIT FP32                      |        323.875 |         561.25  |         538     |         632.312 |
-| BenchmarkCUDA JIT FP16                      |        444     |         476.688 |         617.875 |         800     |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          5.25  |           8     |         418.375 |          61.875 |
+|                        |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
+|:-----------------------|---------------:|----------------:|----------------:|----------------:|
+| BenchmarkCUDA FP32     |       1542.19  |        1671     |         1765    |        1916.5   |
+| BenchmarkCUDA FP16     |       1733.56  |        1229     |         1220.38 |        1285.75  |
+| BenchmarkCUDA JIT FP32 |        321.812 |         438.125 |          538    |         747.062 |
+| BenchmarkCUDA JIT FP16 |        472.312 |         502     |          618    |         776.562 |
 
 F1 score
-|                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
-|:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCUDA FP32                          |          0.867 |           0.867 |           0.867 |           0.867 |
-| BenchmarkCUDA FP16                          |          0.867 |           0.867 |           0.867 |           0.867 |
-| BenchmarkCUDA JIT FP32                      |          0.867 |           0.867 |           0.867 |           0.867 |
-| BenchmarkCUDA JIT FP16                      |          0.867 |           0.867 |           0.867 |           0.867 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |          0.867 |           0.867 |           0.867 |           0.867 |
+|                        |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
+|:-----------------------|---------------:|----------------:|----------------:|----------------:|
+| BenchmarkCUDA FP32     |          0.867 |           0.867 |           0.867 |           0.867 |
+| BenchmarkCUDA FP16     |          0.867 |           0.867 |           0.867 |           0.867 |
+| BenchmarkCUDA JIT FP32 |          0.867 |           0.867 |           0.867 |           0.867 |
+| BenchmarkCUDA JIT FP16 |          0.867 |           0.867 |           0.867 |           0.867 |
 
 </details>
 
 <details>
 <summary>GPTNeo</summary>
 
-Inference time [ms/sample]
-|                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
-|:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCUDA FP32                          |        774.454 |          97.448 |          72.084 |     OutOfMemory |
-| BenchmarkCUDA FP16                          |        853.397 |         100.885 |          73.057 |          51.257 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |       4277.05  |     OutOfMemory |     OutOfMemory |     OutOfMemory |
+Inference time [ms/batch]
+|                    |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
+|:-------------------|---------------:|----------------:|----------------:|----------------:|
+| BenchmarkCUDA FP32 |        711.666 |         1483.83 |         2353.65 |     OutOfMemory |
+| BenchmarkCUDA FP16 |        845.133 |         1509.55 |         2339.03 |         3397.37 |
 
 GPU Memory Peak usage [MB] - max_memory_allocated
-|                                             |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
-|:--------------------------------------------|---------------:|----------------:|----------------:|----------------:|
-| BenchmarkCUDA FP32                          |      2234.69   |         7977    |        10455.1  |     OutOfMemory |
-| BenchmarkCUDA FP16                          |      2422.56   |         3851.31 |         6490.81 |         9843.62 |
-| BenchmarkTensorDynamicQuantization CPU INT8 |        22.5625 |     OutOfMemory |     OutOfMemory |     OutOfMemory |
+|                    |   batch size 1 |   batch size 16 |   batch size 32 |   batch size 64 |
+|:-------------------|---------------:|----------------:|----------------:|----------------:|
+| BenchmarkCUDA FP32 |        2262.44 |         8006.19 |        10565    |     OutOfMemory |
+| BenchmarkCUDA FP16 |        2256.62 |         4048.56 |         6491.62 |         9836.19 |
 
 </details>
